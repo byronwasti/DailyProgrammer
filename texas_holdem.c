@@ -14,12 +14,6 @@ typedef struct{
   card c2;
 } hand;
 
-typedef struct{
-  char number[6];
-  char suit[9];
-} str_card;
-
-
 void shuffleDeck( int* DECK ){
   int i;
   int c1, c2;
@@ -83,25 +77,51 @@ void printDeck( card* DECK ){
 }
 
 
-str_card interpretCard( card C ){
-  str_card sC;
-  switch(C.number){
-    case 1: sprintf(sC.number, "ACE"); break;
-    case 11: sprintf(sC.number, "JACK"); break;
-    case 12: sprintf(sC.number, "QUEEN"); break;
-    case 13: sprintf(sC.number, "KING"); break;
+// Prints out the card in a standard 18 char format
+void interpretCard( card C ){
+  char number[6];
+  char suit[9];
+  char OUT[18];
 
-    default: sprintf( sC.number, "%d",C.number);
+  switch(C.number){
+    case 1: sprintf(number, "ACE"); break;
+    case 11: sprintf(number, "JACK"); break;
+    case 12: sprintf(number, "QUEEN"); break;
+    case 13: sprintf(number, "KING"); break;
+
+    default: sprintf(number, "%d",C.number);
   }
 
   switch(C.suit){
-    case 0: sprintf(sC.suit, "HEARTS"); break;
-    case 1: sprintf(sC.suit, "SPADES"); break;
-    case 2: sprintf(sC.suit, "CLUBS"); break;
-    case 3: sprintf(sC.suit, "DIAMONDS"); break;
+    case 0: sprintf(suit, "HEARTS"); break;
+    case 1: sprintf(suit, "SPADES"); break;
+    case 2: sprintf(suit, "CLUBS"); break;
+    case 3: sprintf(suit, "DIAMONDS"); break;
   }
-  //printf("%s of %s\n", sC.number, sC.suit);
-  return sC;
+
+  sprintf(OUT, "%s of %s", number, suit);
+  printf("%-18s", OUT );
+}
+
+
+void printPlayerHand( hand* PLAYERS, int PLAYER_COUNT){
+  int i, j;
+  for(i = 0; i < PLAYER_COUNT; i++){
+    printf("PLAYER %-11d ", i);
+    
+    if( i % 4 == 3 ){
+      putchar('\n');
+      for ( j = i-3; j < i; j++ ){
+        interpretCard(PLAYERS[j].c1);
+      }
+      putchar('\n');
+      for ( j = i-3; j < i; j++ ){
+        interpretCard(PLAYERS[j].c2);
+      }
+      putchar('\n');
+    }
+  }
+
 }
 
 
@@ -124,12 +144,7 @@ int main( int argc, char * argv[]){
     PLAYERS[i].c2 = drawCard(DECK);
   }
 
-  for(i = 0; i < PLAYER_COUNT; i++){
-    str_card c1 = interpretCard(PLAYERS[i].c1);
-    str_card c2 = interpretCard(PLAYERS[i].c2);
-    printf("PLAYER %d : %s of %s\n", i+1, c1.number, c1.suit );
-    printf("           %s of %s\n", c2.number, c2.suit);
-  }
+  printPlayerHand(PLAYERS, PLAYER_COUNT);
 
   putchar('\n');
   for (int i = 0; i < 5; i++){
@@ -137,13 +152,14 @@ int main( int argc, char * argv[]){
     if(i == 0){ printf("The FLOP:\n");}
     if(i == 3){ printf("The TURN:\n");}
     if(i == 4){ printf("The RIVER:\n");}
-    
-    str_card ctable = interpretCard(TABLE[i]);
-    printf("    %s of %s\n", ctable.number, ctable.suit);
+    printf("    ");
+    interpretCard(TABLE[i]);
+    putchar('\n');
   }
 
   //interpretCard( PLAYERS[i].c1 );
 
+  putchar('\n');
 
   /* FREE UP MEMORY */
   free(DECK);
