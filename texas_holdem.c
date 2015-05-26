@@ -7,12 +7,23 @@
 typedef struct {
   int number;
   int suit;
-} card;
+} card_t;
 
 typedef struct{
-  card c1;
-  card c2;
-} hand;
+  card_t c1;
+  card_t c2;
+} phand_t;
+
+
+// This is the final hand of each player type
+typedef struct{
+  card_t c1;
+  card_t c2;
+  card_t c3;
+  card_t c4;
+  card_t c5;
+  int HAND;
+} fhand_t;
 
 void shuffleDeck( int* DECK ){
   int i;
@@ -29,12 +40,12 @@ void shuffleDeck( int* DECK ){
 }
 
 
-card * populateDeck( void ) {
+card_t * populateDeck( void ) {
   int i, j;
-  card* bDECK = (card *)malloc(52 * sizeof(card));
+  card_t* bDECK = (card_t *)malloc(52 * sizeof(card_t));
   int* sDECK = (int *)malloc(52 * sizeof(int));
 
-  card* DECK = (card *)malloc(52 * sizeof(card));
+  card_t* DECK = (card_t *)malloc(52 * sizeof(card_t));
 
   for (i = 0; i < 52; i++){
     sDECK[i] = i;
@@ -61,15 +72,15 @@ card * populateDeck( void ) {
 }
 
 
-card drawCard( card* DECK ){
+card_t drawCard( card_t* DECK ){
   static int i;
-  card c = DECK[i];
+  card_t c = DECK[i];
   i++;
   return c;
 }
 
 
-void printDeck( card* DECK ){
+void printDeck( card_t* DECK ){
   int i;
   for( i = 0; i < 52; i++){
     printf("%d, %d\n", DECK[i].number, DECK[i].suit);
@@ -77,8 +88,8 @@ void printDeck( card* DECK ){
 }
 
 
-// Prints out the card in a standard 18 char format
-void interpretCard( card C ){
+// Prints out the card_t in a standard 18 char format
+void printCard( card_t C ){
   char number[6];
   char suit[9];
   char OUT[18];
@@ -104,24 +115,79 @@ void interpretCard( card C ){
 }
 
 
-void printPlayerHand( hand* PLAYERS, int PLAYER_COUNT){
+void printPlayerHand( phand_t* PLAYERS, int PLAYER_COUNT){
   int i, j;
   for(i = 0; i < PLAYER_COUNT; i++){
     printf("PLAYER %-11d ", i);
     
     if( i % 4 == 3 ){
       putchar('\n');
-      for ( j = i-3; j < i; j++ ){
-        interpretCard(PLAYERS[j].c1);
+      for ( j = i-3; j <= i; j++ ){
+        printCard(PLAYERS[j].c1);
+        putchar(' ');
       }
       putchar('\n');
-      for ( j = i-3; j < i; j++ ){
-        interpretCard(PLAYERS[j].c2);
+      for ( j = i-3; j <= i; j++ ){
+        printCard(PLAYERS[j].c2);
+        putchar(' ');
       }
       putchar('\n');
     }
   }
+}
 
+
+void quick_sort (card_t *a, int n) {
+  int i, j, p;
+  card_t t;
+
+  if (n<2){
+    return;
+  }
+
+  p = a[n/2].number;
+  for (i = 0, j = n - 1;; i++, j--) {
+    while (a[i].number < p)
+      i++;
+    while (p < a[j].number)
+      j--;
+    if (i >= j)
+      break;
+    t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  quick_sort(a, i);
+  quick_sort(a + i, n - i);
+}
+
+
+fhand_t high_card_check( card_t * CHECK ){
+  int i;
+  quick_sort( CHECK, 7);
+  for ( i = 0; i < 7; i++){
+    printCard(CHECK[i]);
+    putchar(' ');
+  }
+  putchar('\n');
+}
+
+fhand_t interpretHand( card_t *TABLE, phand_t *PLAYERS, int PLAYER_COUNT ){
+  int i, j;
+  card_t* CHECK = (card_t *)malloc(7 * sizeof(card_t));
+  for (i = 0; i < PLAYER_COUNT; i++){
+
+    // Make and populate the Hand to be checked
+    for (j = 0; j < 5; j++){
+      CHECK[j] = TABLE[j];
+    }
+    CHECK[6] = PLAYERS[i].c1;
+    CHECK[7] = PLAYERS[i].c2;
+    
+    // Go through the list of hands and check them!
+    high_card_check( CHECK );
+  }
+  free(CHECK);
 }
 
 
@@ -133,9 +199,9 @@ int main( int argc, char * argv[]){
     PLAYER_COUNT = atoi(argv[1]);
   }
 
-  card* DECK = populateDeck();
-  hand* PLAYERS = (hand *)malloc(PLAYER_COUNT * sizeof(hand));
-  card* TABLE = (card *)malloc(5 * sizeof(card));
+  card_t* DECK = populateDeck();
+  phand_t* PLAYERS = (phand_t *)malloc(PLAYER_COUNT * sizeof(phand_t));
+  card_t* TABLE = (card_t *)malloc(5 * sizeof(card_t));
   
   /* GAMEPLAY */
 
@@ -153,17 +219,18 @@ int main( int argc, char * argv[]){
     if(i == 3){ printf("The TURN:\n");}
     if(i == 4){ printf("The RIVER:\n");}
     printf("    ");
-    interpretCard(TABLE[i]);
+    printCard(TABLE[i]);
     putchar('\n');
   }
 
-  //interpretCard( PLAYERS[i].c1 );
+  /* CHECK HANDS */
+  interpretHand( TABLE, PLAYERS, PLAYER_COUNT);
 
-  putchar('\n');
 
   /* FREE UP MEMORY */
   free(DECK);
   free(PLAYERS);
   free(TABLE);
+  putchar('\n');
   return 0;
 }
