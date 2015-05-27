@@ -15,16 +15,6 @@ typedef struct{
 } phand_t;
 
 
-// This is the final hand of each player type
-typedef struct{
-  card_t c1;
-  card_t c2;
-  card_t c3;
-  card_t c4;
-  card_t c5;
-  int HAND;
-} fhand_t;
-
 void shuffleDeck( int* DECK ){
   int i;
   int c1, c2;
@@ -185,31 +175,44 @@ void quick_sort (card_t *a, int n) {
 }
 
 
-fhand_t * high_card_check( card_t * CHECK ){
-  //int i;
+int high_card_check( card_t * CHECK ){
   quick_sort( CHECK, 7);
-  //for ( i = 0; i < 7; i++){
-  //}
-  return CHECK;
+  for (int i = 0; i < 7; i++){
+    printf("%d : %d\n", CHECK[i].number, CHECK[i].suit);
+  }
+  return 0;
 }
 
-fhand_t interpretHand( card_t *TABLE, phand_t *PLAYERS, int PLAYER_COUNT ){
-  int i, j;
-  card_t* CHECK = (card_t *)malloc(7 * sizeof(card_t));
-  for (i = 0; i < PLAYER_COUNT; i++){
 
-    // Make and populate the Hand to be checked
-    for (j = 0; j < 5; j++){
-      CHECK[j] = TABLE[j];
+int pair_check( card_t * CHECK){
+  quick_sort( CHECK, 7);
+  for (int i = 0; i < 7; i++){
+    if (CHECK[i].number == CHECK[i+1].number){
+      return 1;
     }
-    CHECK[6] = PLAYERS[i].c1;
-    CHECK[7] = PLAYERS[i].c2;
-    
-    // Go through the list of hands and check them!
-    high_card_check( CHECK );
   }
+  return 0;
+}
+
+
+int interpretHand( card_t *TABLE, phand_t PLAYER ){
+  int j, HAND_TYPE = 0, tmp = 0;
+  card_t* CHECK = (card_t *)malloc(8 * sizeof(card_t));
+
+  // Make and populate the Hand to be checked
+  for (j = 0; j < 5; j++){
+    CHECK[j] = TABLE[j];
+  }
+  CHECK[6] = PLAYER.c1;
+  CHECK[7] = PLAYER.c2;
+  
+  // Go through the list of hands and check them!
+  high_card_check( CHECK ); // DONT ACTUALLY NEED TO CHECK
+  tmp = pair_check(CHECK);
+  if (tmp) HAND_TYPE = tmp;
+
   free(CHECK);
-  return;
+  return HAND_TYPE;
 }
 
 
@@ -246,7 +249,7 @@ int main( int argc, char * argv[]){
   }
 
   /* CHECK HANDS */
-  interpretHand( TABLE, PLAYERS, PLAYER_COUNT);
+  printf("%d\n", interpretHand( TABLE, PLAYERS[0]));
 
 
   /* FREE UP MEMORY */
