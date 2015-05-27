@@ -115,12 +115,18 @@ void printCard( card_t C ){
 }
 
 
+// TODO: Make this actually work
+// Have to think through the logic a bit more...
+// or use NCURSES
 void printPlayerHand( phand_t* PLAYERS, int PLAYER_COUNT){
-  int i, j;
-  for(i = 0; i < PLAYER_COUNT; i++){
-    printf("PLAYER %-11d ", i);
-    
-    if( i % 4 == 3 ){
+  int i=1, j, tmp_pcount = PLAYER_COUNT;
+
+  for(i = 0; tmp_pcount > 0; tmp_pcount-=4 ){
+    if (tmp_pcount > 3){
+      i+=3;
+      for ( j = i-3; j <= i; j++){
+        printf("PLAYER %-11d ", j);
+      }
       putchar('\n');
       for ( j = i-3; j <= i; j++ ){
         printCard(PLAYERS[j].c1);
@@ -128,6 +134,23 @@ void printPlayerHand( phand_t* PLAYERS, int PLAYER_COUNT){
       }
       putchar('\n');
       for ( j = i-3; j <= i; j++ ){
+        printCard(PLAYERS[j].c2);
+        putchar(' ');
+      }
+      putchar('\n');
+    } else {
+      i+= tmp_pcount%4;
+      putchar('\n');
+      for ( j = i - tmp_pcount%4+1; j <= i; j++){
+        printf("PLAYER %-11d ", j);
+      }
+      putchar('\n');
+      for ( j = i- tmp_pcount%4+1; j <= i; j++ ){
+        printCard(PLAYERS[j].c1);
+        putchar(' ');
+      }
+      putchar('\n');
+      for ( j = i- tmp_pcount%4+1; j <= i; j++ ){
         printCard(PLAYERS[j].c2);
         putchar(' ');
       }
@@ -162,14 +185,12 @@ void quick_sort (card_t *a, int n) {
 }
 
 
-fhand_t high_card_check( card_t * CHECK ){
-  int i;
+fhand_t * high_card_check( card_t * CHECK ){
+  //int i;
   quick_sort( CHECK, 7);
-  for ( i = 0; i < 7; i++){
-    printCard(CHECK[i]);
-    putchar(' ');
-  }
-  putchar('\n');
+  //for ( i = 0; i < 7; i++){
+  //}
+  return CHECK;
 }
 
 fhand_t interpretHand( card_t *TABLE, phand_t *PLAYERS, int PLAYER_COUNT ){
@@ -188,11 +209,12 @@ fhand_t interpretHand( card_t *TABLE, phand_t *PLAYERS, int PLAYER_COUNT ){
     high_card_check( CHECK );
   }
   free(CHECK);
+  return;
 }
 
 
 int main( int argc, char * argv[]){
-  int PLAYER_COUNT = 4, i, j, onCard = 0;
+  int PLAYER_COUNT = 4;
 
   srand(time(NULL));
   if (argc > 1){
